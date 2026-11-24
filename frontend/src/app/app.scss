@@ -1,0 +1,17 @@
+.app-header {
+  padding: 1rem 1.5rem;
+  background: var(--color-primary);
+}
+
+.app-header__brand {
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.app-main {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+}

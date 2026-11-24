@@ -1,0 +1,43 @@
+<article class="task" [class.task--done]="task().status === 'done'" [attr.aria-busy]="busy()">
+  <div class="task__main">
+    <h2 class="task__title">
+      <a [routerLink]="['/tasks', task().id, 'edit']">{{ task().title }}</a>
+    </h2>
+
+    @if (task().description; as description) {
+      <p class="task__description">{{ description }}</p>
+    }
+
+    <p class="task__meta">
+      <span [class]="'badge badge--' + task().priority">
+        Prioridad: {{ task().priority | taskPriorityLabel }}
+      </span>
+      @if (task().dueDate; as dueDate) {
+        <span class="task__due" [class.task__due--overdue]="overdue()">
+          Vence el {{ dueDate | date: 'dd/MM/yyyy' }}
+          @if (overdue()) {
+            (vencida)
+          }
+        </span>
+      }
+    </p>
+  </div>
+
+  <div class="task__actions">
+    <app-task-status-select
+      [status]="task().status"
+      [disabled]="busy()"
+      [label]="'Estado de ' + task().title"
+      (statusChange)="statusChange.emit($event)"
+    />
+    <button
+      type="button"
+      class="button button--danger"
+      [disabled]="busy()"
+      [attr.aria-label]="'Eliminar ' + task().title"
+      (click)="remove.emit()"
+    >
+      Eliminar
+    </button>
+  </div>
+</article>

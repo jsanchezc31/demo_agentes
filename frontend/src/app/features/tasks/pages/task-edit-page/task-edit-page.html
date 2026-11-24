@@ -1,0 +1,32 @@
+<header class="page-header">
+  <h1>Editar tarea</h1>
+
+  @if (task.hasValue()) {
+    <div class="status-field">
+      <span aria-hidden="true">Estado</span>
+      <app-task-status-select
+        label="Estado de la tarea"
+        [status]="task.value().status"
+        [disabled]="saving()"
+        (statusChange)="changeStatus($event)"
+      />
+    </div>
+  }
+</header>
+
+<app-error-message [message]="message()" />
+<app-error-message [message]="loadError()" />
+
+@if (notFound()) {
+  <p>La tarea no existe o se ha eliminado. <a routerLink="/tasks">Volver al listado</a>.</p>
+} @else if (task.hasValue()) {
+  <app-task-form
+    submitLabel="Guardar cambios"
+    [task]="task.value()"
+    [saving]="saving()"
+    [serverError]="apiError()"
+    (save)="update($event)"
+  />
+} @else if (task.isLoading()) {
+  <p>Cargando tarea…</p>
+}

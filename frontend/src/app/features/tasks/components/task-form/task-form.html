@@ -1,0 +1,64 @@
+<form class="task-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <div class="field">
+    <label for="task-title">Título <span aria-hidden="true">*</span></label>
+    <input
+      id="task-title"
+      type="text"
+      formControlName="title"
+      autocomplete="off"
+      [attr.maxlength]="titleMaxLength"
+      [attr.aria-invalid]="showError('title') || !!fieldErrors()['title']"
+      aria-describedby="task-title-error"
+    />
+    <p id="task-title-error" class="field__error">
+      @if (showError('title')) {
+        @if (form.controls.title.hasError('maxlength')) {
+          El título no puede superar {{ titleMaxLength }} caracteres
+        } @else {
+          El título es obligatorio
+        }
+      } @else if (fieldErrors()['title']; as message) {
+        {{ message }}
+      }
+    </p>
+  </div>
+
+  <div class="field">
+    <label for="task-description">Descripción</label>
+    <textarea id="task-description" rows="4" formControlName="description"></textarea>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label for="task-priority">Prioridad</label>
+      <select id="task-priority" formControlName="priority">
+        @for (option of priorities; track option) {
+          <option [value]="option">{{ option | taskPriorityLabel }}</option>
+        }
+      </select>
+      @if (fieldErrors()['priority']; as message) {
+        <p class="field__error">{{ message }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label for="task-due-date">Fecha límite</label>
+      <input
+        id="task-due-date"
+        type="date"
+        formControlName="dueDate"
+        [attr.aria-invalid]="!!fieldErrors()['dueDate']"
+      />
+      @if (fieldErrors()['dueDate']; as message) {
+        <p class="field__error">{{ message }}</p>
+      }
+    </div>
+  </div>
+
+  <div class="task-form__actions">
+    <button type="submit" class="button button--primary" [disabled]="saving()">
+      {{ saving() ? 'Guardando…' : submitLabel() }}
+    </button>
+    <a class="button" routerLink="/tasks">Cancelar</a>
+  </div>
+</form>

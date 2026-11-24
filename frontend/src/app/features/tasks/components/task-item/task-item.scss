@@ -1,0 +1,65 @@
+.task {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+
+  &[aria-busy='true'] {
+    opacity: 0.6;
+  }
+}
+
+.task--done .task__title a {
+  color: var(--color-muted);
+  text-decoration: line-through;
+}
+
+.task__main {
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+
+.task__title {
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+
+  a {
+    color: inherit;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      text-decoration: underline;
+    }
+  }
+}
+
+.task__description {
+  margin: 0 0 0.5rem;
+  color: var(--color-muted);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.task__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.task__due--overdue {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.task__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

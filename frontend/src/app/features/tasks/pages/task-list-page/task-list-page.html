@@ -1,0 +1,50 @@
+<header class="page-header">
+  <h1>Tareas</h1>
+  <a class="button button--primary" routerLink="/tasks/new">Nueva tarea</a>
+</header>
+
+<app-task-filters [filters]="filters()" (filtersChange)="changeFilters($event)" />
+
+<app-error-message [message]="actionError()" />
+<app-error-message [message]="loadError()" />
+
+@if (tasks.hasValue()) {
+  @let result = tasks.value();
+
+  <p class="summary" aria-live="polite">
+    {{ result.total }} {{ result.total === 1 ? 'tarea' : 'tareas' }}
+    @if (tasks.isLoading()) {
+      · actualizando…
+    }
+  </p>
+
+  <ul class="task-list">
+    @for (task of result.items; track task.id) {
+      <li>
+        <app-task-item
+          [task]="task"
+          [busy]="busyTaskId() === task.id"
+          (statusChange)="changeStatus(task, $event)"
+          (remove)="remove(task)"
+        />
+      </li>
+    } @empty {
+      <li class="empty">
+        @if (hasFilters()) {
+          No hay tareas con estos filtros.
+        } @else {
+          Todavía no hay tareas. <a routerLink="/tasks/new">Crea la primera</a>.
+        }
+      </li>
+    }
+  </ul>
+
+  <app-paginator
+    [page]="result.page"
+    [limit]="result.limit"
+    [total]="result.total"
+    (pageChange)="page.set($event)"
+  />
+} @else if (tasks.isLoading()) {
+  <p class="summary">Cargando tareas…</p>
+}
