@@ -1,0 +1,25 @@
+# Paso 8: Documentos de referencia y cierre de sesión (handoff)
+
+## Objetivo
+
+- Versionar tres documentos de referencia aportados al proyecto.
+- Cerrar la sesión dejando todo lo necesario para retomarla otro día en un chat nuevo.
+
+## Qué hicimos
+
+1. Probamos la skill `commit-message` invocándola con `/commit-message`. Al leer los ficheros nuevos detectó que **no describen este proyecto** y lo avisó antes de commitear:
+
+| Documento | Origen | Diferencias con este proyecto |
+|-----------|--------|-------------------------------|
+| `ARQUITECTURA-AGENTES-V2.md` | Proyecto tstcln-reservas | Dominio de reservas de salas; enlaza a `docs/ARQUITECTURA-AGENTES.md` (no existe) y a `scripts/probar-*.ps1` |
+| `skills-orquestacion-v2.md` | Proyecto tstcln-reservas | Rutas `backend/src/Salas/`, tests con Vitest |
+| `analisis-diseño.md` | Lista de tareas de otro curso | ASP.NET Core + EF Core, IDs `int`, plantillas y tareas repetitivas |
+
+2. Se decidió commitearlos tal cual en `docs/` como material de referencia (commit `docs: añadir documentos de referencia sobre orquestación de agentes y skills`).
+3. Actualizamos el **Estado actual** de `docs/README.md` como punto de entrada para el próximo chat.
+
+## Lo aprendido
+
+- Una skill bien escrita no solo redacta: el paso "leer el diff completo" hizo que detectara contenido ajeno al proyecto antes de commitearlo.
+- Los documentos de referencia de otros proyectos son útiles como ideas (orquestador → planificador → implementadores → verificador), pero mezclados con la documentación propia pueden confundir al agente.
+- Un handoff no es un resumen en el chat: es dejar escrito en el repositorio el estado, el siguiente paso, los bloqueos y las decisiones pendientes, y subirlo.
