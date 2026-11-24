@@ -16,10 +16,12 @@
 | `analisis-diseño.md` | Lista de tareas de otro curso | ASP.NET Core + EF Core, IDs `int`, plantillas y tareas repetitivas |
 
 2. Se decidió commitearlos tal cual en `docs/` como material de referencia (commit `docs: añadir documentos de referencia sobre orquestación de agentes y skills`).
-3. Actualizamos el **Estado actual** de `docs/README.md` como punto de entrada para el próximo chat.
+3. Creamos `HANDOFF.md` en la raíz como punto de entrada para el próximo chat: contexto en 30 segundos, estado actual, bloqueos, decisiones pendientes, acuerdos de trabajo y ficheros clave.
+4. El estado actual se movió de `docs/README.md` a `HANDOFF.md` (una sola fuente) y la skill `bitacora` pasó a leerlo y mantenerlo.
 
 ## Lo aprendido
 
 - Una skill bien escrita no solo redacta: el paso "leer el diff completo" hizo que detectara contenido ajeno al proyecto antes de commitearlo.
 - Los documentos de referencia de otros proyectos son útiles como ideas (orquestador → planificador → implementadores → verificador), pero mezclados con la documentación propia pueden confundir al agente.
 - Un handoff no es un resumen en el chat: es dejar escrito en el repositorio el estado, el siguiente paso, los bloqueos y las decisiones pendientes, y subirlo.
+- Un fichero `HANDOFF.md` dedicado en la raíz es más visible que una sección dentro del índice de la bitácora, y separa "qué hemos aprendido" (`docs/`) de "dónde estamos" (`HANDOFF.md`).

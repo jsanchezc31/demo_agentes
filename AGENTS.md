@@ -144,7 +144,7 @@ npm run lint
 
 ## Bitácora en `docs/`
 
-Cada paso se documenta en `docs/` con la skill `bitacora`. Para retomar el trabajo en un chat nuevo, empezar por la sección **Estado actual** de `docs/README.md`.
+Cada paso se documenta en `docs/` con la skill `bitacora`. Para retomar el trabajo en un chat nuevo, empezar por `HANDOFF.md`.
 
 ## Lista de tareas inicial
 

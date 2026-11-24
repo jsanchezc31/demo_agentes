@@ -10,7 +10,7 @@
 1. Creamos la skill `.cursor/skills/bitacora/SKILL.md` con dos modos:
    - **Registrar**: crea `docs/NN-titulo.md` con la plantilla (objetivo, qué hicimos, lo aprendido), añade la fila al índice y actualiza el estado actual.
    - **Retomar**: lee `docs/README.md`, el último paso y la lista de tareas de `AGENTS.md`, lo contrasta con `git log` y `git status`, y resume dónde estamos y qué toca.
-2. Añadimos la sección **Estado actual** a `docs/README.md`: último paso, siguiente paso y bloqueos.
+2. Añadimos la sección **Estado actual** a `docs/README.md`: último paso, siguiente paso y bloqueos. (En el paso 8 se movió a `HANDOFF.md`.)
 3. Sustituimos en `AGENTS.md` las instrucciones sueltas de la bitácora por una referencia a la skill y la añadimos a la tabla de skills.
 
 ## Cómo retomar en un chat nuevo

@@ -2,18 +2,7 @@
 
 Registro de los pasos dados y lo aprendido en cada uno. Se mantiene con la skill `bitacora`.
 
-## Estado actual
-
-- **Último paso**: 8. Documentos de referencia y cierre de sesión (handoff)
-- **Siguiente paso**: crear el proyecto Symfony 7 en `backend/` (primera tarea pendiente de `AGENTS.md`); ver los comandos en el paso 5
-- **Bloqueos**:
-  - PHP 8.3, Composer y Angular CLI no están instalados (solo Node 24)
-  - Sin CLI `gh` ni MCP de GitHub el agente no puede crear issues ni PR (sí puede hacer push)
-- **Decisiones pendientes**:
-  - Qué hacer con los documentos de referencia de otros proyectos (`ARQUITECTURA-AGENTES-V2.md`, `skills-orquestacion-v2.md`, `analisis-diseño.md`): adaptarlos a este proyecto o moverlos a `docs/referencias/`
-  - Redactar la documentación funcional en `docs/funcional/` para generar los issues de GitHub
-- **Remoto**: https://github.com/jsanchezc31/demo_agentes (`origin/main`)
-- **Cómo retomar**: en un chat nuevo, `/bitacora retoma el proyecto`
+El estado actual, el siguiente paso y los bloqueos están en [`HANDOFF.md`](../HANDOFF.md).
 
 ![Flujo de trabajo de la pizarra](img/pizarra-flujo.png)
 
