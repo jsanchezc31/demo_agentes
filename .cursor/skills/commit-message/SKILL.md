@@ -103,6 +103,8 @@ chore(rules): añadir reglas de Cursor por capa del proyecto
   git commit -F .git/COMMIT_MSG_DRAFT
   ```
 
+  Escribir el fichero y commitear **en secuencia**, nunca en paralelo: si la escritura falla, el commit no tiene mensaje. Si la herramienta rechaza la escritura porque el fichero cambió (se usó en un commit anterior), leerlo primero y reintentar.
+
   No usar varios `-m` para el cuerpo: cada `-m` crea un párrafo (las viñetas quedarían separadas por líneas en blanco) y en PowerShell los acentos pueden corromperse.
 
 Tras el commit, comprobar el resultado con `git log -1 --format=%B`.
