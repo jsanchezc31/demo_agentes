@@ -4,9 +4,10 @@ Registro de los pasos dados y lo aprendido en cada uno. Se mantiene con la skill
 
 ## Estado actual
 
-- **Último paso**: 6. Skill para la bitácora y retomar en un chat nuevo
+- **Último paso**: 7. Commit con la skill y repositorio remoto en GitHub
 - **Siguiente paso**: crear el proyecto Symfony 7 en `backend/` (primera tarea pendiente de `AGENTS.md`)
-- **Bloqueos**: PHP, Composer y Angular CLI no están instalados; la CLI `gh` tampoco, y el repositorio aún no tiene remoto en GitHub
+- **Bloqueos**: PHP, Composer y Angular CLI no están instalados; sin CLI `gh` ni MCP de GitHub no se pueden crear issues ni PR desde el agente
+- **Remoto**: https://github.com/jsanchezc31/demo_agentes (`origin/main`)
 
 ![Flujo de trabajo de la pizarra](img/pizarra-flujo.png)
 
@@ -20,6 +21,7 @@ Registro de los pasos dados y lo aprendido en cada uno. Se mantiene con la skill
 | 4 | Skill para los mensajes de commit | [04-skill-mensajes-commit.md](04-skill-mensajes-commit.md) |
 | 5 | Crear la estructura de carpetas | [05-estructura-de-carpetas.md](05-estructura-de-carpetas.md) |
 | 6 | Skill para la bitácora y retomar en un chat nuevo | [06-skill-bitacora.md](06-skill-bitacora.md) |
+| 7 | Commit con la skill y repositorio remoto en GitHub | [07-repositorio-remoto-github.md](07-repositorio-remoto-github.md) |
 
 ## Estructura de `docs/`
 
