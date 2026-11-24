@@ -140,15 +140,11 @@ npm run lint
 | Skill | Uso |
 |-------|-----|
 | `commit-message` | Redactar el mensaje de cada commit (`tipo: descripción`) |
+| `bitacora` | Documentar cada paso en `docs/` y retomar el trabajo en un chat nuevo |
 
 ## Bitácora en `docs/`
 
-Cuando el usuario lo pida, documentar el paso dado y lo aprendido:
-
-- Un fichero por paso: `docs/NN-titulo-en-kebab-case.md` (numeración correlativa).
-- Secciones: objetivo, qué hicimos, lo aprendido.
-- Añadir el paso a la tabla de `docs/README.md`.
-- Imágenes en `docs/img/`.
+Cada paso se documenta en `docs/` con la skill `bitacora`. Para retomar el trabajo en un chat nuevo, empezar por la sección **Estado actual** de `docs/README.md`.
 
 ## Lista de tareas inicial
 

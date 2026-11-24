@@ -1,6 +1,12 @@
 # Bitácora del curso
 
-Registro de los pasos dados y lo aprendido en cada uno.
+Registro de los pasos dados y lo aprendido en cada uno. Se mantiene con la skill `bitacora`.
+
+## Estado actual
+
+- **Último paso**: 6. Skill para la bitácora y retomar en un chat nuevo
+- **Siguiente paso**: crear el proyecto Symfony 7 en `backend/` (primera tarea pendiente de `AGENTS.md`)
+- **Bloqueos**: PHP, Composer y Angular CLI no están instalados; la CLI `gh` tampoco, y el repositorio aún no tiene remoto en GitHub
 
 ![Flujo de trabajo de la pizarra](img/pizarra-flujo.png)
 
@@ -13,6 +19,7 @@ Registro de los pasos dados y lo aprendido en cada uno.
 | 3 | Crear el repositorio Git en local | [03-repositorio-git-local.md](03-repositorio-git-local.md) |
 | 4 | Skill para los mensajes de commit | [04-skill-mensajes-commit.md](04-skill-mensajes-commit.md) |
 | 5 | Crear la estructura de carpetas | [05-estructura-de-carpetas.md](05-estructura-de-carpetas.md) |
+| 6 | Skill para la bitácora y retomar en un chat nuevo | [06-skill-bitacora.md](06-skill-bitacora.md) |
 
 ## Estructura de `docs/`
 
