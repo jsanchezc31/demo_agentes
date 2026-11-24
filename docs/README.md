@@ -18,10 +18,13 @@ El estado actual, el siguiente paso y los bloqueos están en [`HANDOFF.md`](../H
 | 6 | Skill para la bitácora y retomar en un chat nuevo | [06-skill-bitacora.md](06-skill-bitacora.md) |
 | 7 | Commit con la skill y repositorio remoto en GitHub | [07-repositorio-remoto-github.md](07-repositorio-remoto-github.md) |
 | 8 | Documentos de referencia y cierre de sesión (handoff) | [08-documentos-referencia-y-cierre.md](08-documentos-referencia-y-cierre.md) |
+| 9 | Adaptar el análisis y revisar las skills nuevas | [09-analisis-y-revision-de-skills.md](09-analisis-y-revision-de-skills.md) |
+| 10 | Aplicación 0.1 (backend y frontend) | [10-aplicacion-0-1.md](10-aplicacion-0-1.md) |
 
 ## Estructura de `docs/`
 
 - `NN-titulo.md`: un documento por paso, numerado en orden.
 - `img/`: imágenes de apoyo (pizarra, capturas, diagramas).
 - `funcional/`: documentación funcional del producto que alimenta los issues de GitHub.
-- `ARQUITECTURA-AGENTES-V2.md`, `skills-orquestacion-v2.md`, `analisis-diseño.md`: **referencia de otros proyectos**, no describen este. La definición de este proyecto está en `AGENTS.md`.
+- `analisis-diseño.md`: análisis y diseño de este proyecto (capas, modelo `Task`, API, tests y decisiones), actualizado con lo implementado en la versión 0.1.
+- `ARQUITECTURA-AGENTES-V2.md`, `skills-orquestacion-v2.md`: **referencia de otros proyectos**, no describen este. La definición de este proyecto está en `AGENTS.md`.

@@ -1,10 +1,12 @@
-# Análisis y Diseño — Lista de Tareas
+# Análisis y diseño — Lista de tareas
 
 ## 1. Objetivo del proyecto
 
-Aplicación web CRUD de gestión de tareas personales construida como demo didáctica para el curso de GitHub Copilot.
-Permite crear, consultar, actualizar y eliminar tareas, con soporte de **plantillas reutilizables** y **tareas repetitivas** con generación automática de la siguiente ocurrencia al completar.
-El objetivo prioritario es la claridad del código sobre la sofisticación arquitectónica.
+Aplicación web de gestión de tareas (to-do list) construida como demo didáctica para el curso sobre agentes y skills en Cursor.
+
+Permite crear, consultar, filtrar, editar, cambiar de estado y eliminar tareas. Un backend Symfony expone una API REST JSON que consume una SPA en Angular.
+
+El objetivo prioritario es mostrar una arquitectura por capas limpia y reglas de negocio bien testeadas, más que añadir muchas funcionalidades.
 
 ---
 
@@ -12,169 +14,293 @@ El objetivo prioritario es la claridad del código sobre la sofisticación arqui
 
 | Tecnología | Versión | Rol |
 |---|---|---|
-| ASP.NET Core | 10 | API REST / backend (Controllers) |
-| Entity Framework Core | 10 | ORM / acceso a datos |
-| SQLite | — | Base de datos embebida, sin infraestructura externa |
-| xUnit + Moq | — | Tests unitarios |
+| PHP | 8.3 | Lenguaje del backend |
+| Symfony | 7.4 | Framework de la API REST |
+| Doctrine ORM + Migrations | ORM 3.x, DBAL 4.x | Persistencia y evolución del esquema |
+| SQLite | 3.x | Base de datos de desarrollo (`var/data_dev.db`) y de tests (`var/data_test.db`) |
+| PostgreSQL | — | Opcional para producción; el esquema no usa nada específico de SQLite |
+| Angular | 22 | SPA (standalone components, signals, zoneless) |
+| PHPUnit + WebTestCase | 12 | Tests unitarios, de integración y funcionales |
+| PHP-CS-Fixer, PHPStan (nivel 8), ESLint, Prettier | — | Calidad de código |
 
 ---
 
-## 3. Arquitectura de capas
+## 3. Arquitectura
 
-Estructura de capas plana y legible en pantalla, sin patrones complejos (sin CQRS ni Mediator).
+### Backend: capas
+
+Arquitectura por capas con el dominio aislado del framework. Cada caso de uso es un command/query con su handler.
 
 | Capa | Carpeta | Responsabilidad |
 |---|---|---|
-| Modelos de dominio | `Models/` | Entidades del negocio (`TodoItem`, `PlantillaTarea`, `TipoRecurrencia`) |
-| Acceso a datos | `Data/` | `DbContext` y configuración de EF Core |
-| Lógica de negocio | `Services/` | `ITodoService` + `TodoService`, `IPlantillaService` + `PlantillaService` |
-| API / Controladores | `Controllers/` | Orquestación HTTP, sin lógica de negocio |
-| Tests | `Tests/` | Proyecto xUnit separado |
+| Dominio | `src/Domain/Task/` | Entidad `Task`, value objects, enums, excepciones e interfaz `TaskRepository`. Sin dependencias de Symfony ni Doctrine |
+| Aplicación | `src/Application/Task/` | Casos de uso (commands/queries + handlers) y DTOs de salida. Solo depende del dominio |
+| Infraestructura | `src/Infrastructure/Persistence/Doctrine/` | Mapeo XML de `Task` y `DoctrineTaskRepository` |
+| UI HTTP | `src/UI/Http/` | Controladores invocables, DTOs de entrada validados y `ExceptionListener` |
 
 ```
-AppTodoList/
-├── Models/
-│   ├── TodoItem.cs
-│   ├── PlantillaTarea.cs
-│   └── TipoRecurrencia.cs
-├── Data/
-│   └── AppDbContext.cs
-├── Services/
-│   ├── ITodoService.cs
-│   ├── TodoService.cs
-│   ├── IPlantillaService.cs
-│   └── PlantillaService.cs
-├── Controllers/
-│   ├── TareasController.cs
-│   └── PlantillasController.cs
-├── Tests/
-├── Program.cs
-└── appsettings.json
+backend/
+├── src/
+│   ├── Domain/Task/
+│   │   ├── Task.php
+│   │   ├── TaskId.php
+│   │   ├── TaskTitle.php
+│   │   ├── TaskDueDate.php
+│   │   ├── TaskStatus.php
+│   │   ├── TaskPriority.php
+│   │   ├── TaskRepository.php
+│   │   └── Exception/
+│   │       ├── TaskNotFound.php
+│   │       ├── InvalidTaskId.php
+│   │       ├── InvalidTaskTitle.php
+│   │       ├── InvalidTaskDueDate.php
+│   │       └── InvalidTaskTransition.php
+│   ├── Application/Task/
+│   │   ├── Create/      # CreateTaskCommand + CreateTaskHandler
+│   │   ├── List/        # ListTasksQuery + ListTasksHandler
+│   │   ├── Get/         # GetTaskQuery + GetTaskHandler
+│   │   ├── Update/      # UpdateTaskCommand + UpdateTaskHandler
+│   │   ├── ChangeStatus/# ChangeTaskStatusCommand + ChangeTaskStatusHandler
+│   │   ├── Delete/      # DeleteTaskCommand + DeleteTaskHandler
+│   │   ├── TaskResponse.php
+│   │   └── TaskPageResponse.php
+│   ├── Infrastructure/Persistence/Doctrine/
+│   │   ├── Mapping/Task.orm.xml
+│   │   ├── Repository/DoctrineTaskRepository.php
+│   │   └── Type/TaskIdType.php   # Tipo DBAL `task_id`
+│   └── UI/Http/
+│       ├── Controller/  # Un controlador por endpoint
+│       ├── Request/     # CreateTaskRequest, UpdateTaskRequest, ChangeTaskStatusRequest, ListTasksRequest
+│       └── EventListener/ExceptionListener.php + ApiError.php
+├── migrations/
+└── tests/
+    ├── Unit/
+    ├── Integration/
+    ├── Functional/
+    ├── Mother/TaskMother.php
+    ├── Double/InMemoryTaskRepository.php
+    └── Support/RecreatesDatabaseSchema.php
 ```
 
-**Reglas de diseño:**
-- Inyección de dependencias por constructor, nunca `new` directo de servicios.
-- `async/await` en todos los métodos que accedan a base de datos.
-- Los controladores solo orquestan — sin lógica de negocio dentro de ellos.
+**Reglas de diseño (backend):**
+
+- `declare(strict_types=1);`, clases `final` y propiedades `readonly` siempre que sea posible. Excepción: la entidad `Task` no es `final` porque Doctrine genera proxies que la extienden.
+- Las reglas de negocio viven en la entidad `Task`, no en los handlers ni en los controladores.
+- Los handlers tienen un único método `__invoke` y devuelven DTOs (`TaskResponse`), nunca la entidad.
+- Los controladores solo validan la entrada (`#[MapRequestPayload]`, `#[MapQueryString]`), invocan el handler y serializan.
+- Excepciones de dominio específicas; nunca `\Exception` genérica.
+
+### Frontend: organización
+
+```
+frontend/src/app/
+├── core/
+│   ├── models/        # Task, TaskStatus, TaskPriority, Page<T>, ApiError
+│   └── interceptors/  # Interceptor de errores HTTP
+├── features/tasks/
+│   ├── pages/         # TaskListPage, TaskCreatePage, TaskEditPage
+│   ├── components/    # TaskItem, TaskForm, TaskFilters, TaskStatusSelect
+│   └── services/      # TaskService (única capa que llama a la API)
+└── shared/
+    ├── components/    # Paginador, mensajes, etc.
+    └── pipes/         # Etiquetas de estado y prioridad
+```
+
+**Reglas de diseño (frontend):**
+
+- Componentes standalone con `ChangeDetectionStrategy.OnPush` y estado con signals.
+- Inyección con `inject()`; control de flujo nativo (`@if`, `@for` con `track`).
+- Modelos tipados en `core/models`; prohibido `any`.
+- La URL de la API sale de `environments/` (`/api`); en desarrollo, `npm start` usa `proxy.conf.json` para reenviar `/api` a `http://127.0.0.1:8000`.
+- Carga de datos con `rxResource` y peticiones de escritura con `firstValueFrom`; formularios reactivos tipados.
 
 ---
 
-## 4. Modelo de datos
+## 4. Modelo de dominio
 
-### `TodoItem`
+### `Task`
 
-| Campo | Tipo | Descripción |
+| Campo | Tipo PHP | Columna | Descripción |
+|---|---|---|---|
+| `id` | `TaskId` (UUID v7) | `task_id` (`char(36)`) PK | Lo genera `TaskRepository::nextIdentity()` antes de persistir, no la BD |
+| `title` | `string` validado con `TaskTitle` | `varchar(255)` | Obligatorio, 1–255 caracteres tras recortar espacios |
+| `description` | `?string` | `text` nullable | Opcional; una cadena en blanco se guarda como `null` |
+| `status` | `TaskStatus` | `varchar` (`enumType`) | `pending` \| `in_progress` \| `done` |
+| `priority` | `TaskPriority` | `varchar` (`enumType`) | `low` \| `medium` \| `high` |
+| `dueDate` | `?\DateTimeImmutable` | `date` nullable | Fecha límite opcional (sin hora) |
+| `createdAt` | `\DateTimeImmutable` | `datetime_immutable` | Se asigna al crear |
+| `updatedAt` | `\DateTimeImmutable` | `datetime_immutable` | Se actualiza en cada cambio |
+
+```php
+class Task
+{
+    private function __construct(
+        private readonly TaskId $id,
+        private string $title,
+        private ?string $description,
+        private TaskStatus $status,
+        private TaskPriority $priority,
+        private ?\DateTimeImmutable $dueDate,
+        private readonly \DateTimeImmutable $createdAt,
+        private \DateTimeImmutable $updatedAt,
+    ) {}
+
+    public static function create(
+        TaskId $id,
+        string $title,
+        ?string $description,
+        TaskPriority $priority,
+        ?\DateTimeImmutable $dueDate,
+        \DateTimeImmutable $now,
+    ): self {
+        return new self($id, TaskTitle::assert($title), $description, TaskStatus::Pending, $priority, $dueDate, $now, $now);
+    }
+
+    public function update(string $title, ?string $description, TaskPriority $priority, ?\DateTimeImmutable $dueDate, \DateTimeImmutable $now): void;
+
+    public function changeStatus(TaskStatus $status, \DateTimeImmutable $now): void;
+}
+```
+
+### Enums
+
+```php
+enum TaskStatus: string
+{
+    case Pending = 'pending';
+    case InProgress = 'in_progress';
+    case Done = 'done';
+}
+
+enum TaskPriority: string
+{
+    case Low = 'low';
+    case Medium = 'medium';
+    case High = 'high';
+}
+```
+
+### Reglas de negocio
+
+| Regla | Dónde se aplica | Excepción |
 |---|---|---|
-| `Id` | `int` | Clave primaria, autogenerada |
-| `Title` | `string` | Título o descripción de la tarea. Requerido |
-| `IsCompleted` | `bool` | Indica si la tarea está completada. Por defecto `false` |
-| `CreatedAt` | `DateTime` | Fecha y hora de creación, asignada al crear |
-| `EsRepetitiva` | `bool` | Indica si la tarea se repite automáticamente al completarse |
-| `Recurrencia` | `TipoRecurrencia?` | Periodicidad: `Diaria`, `Semanal` o `Mensual`. `null` si no es repetitiva |
-| `ProximaFecha` | `DateTime?` | Fecha calculada para la siguiente ocurrencia. `null` si no es repetitiva |
-| `PlantillaId` | `int?` | FK opcional a `PlantillaTarea` si la tarea se originó de una plantilla |
+| Una tarea nueva se crea en `pending` | `Task::create()` | — |
+| `title` obligatorio, 1–255 caracteres, también al editar | `TaskTitle` | `InvalidTaskTitle` |
+| Una tarea `done` no puede volver a `pending` sin pasar por `in_progress` | `Task::changeStatus()` | `InvalidTaskTransition` |
+| Cambiar al mismo estado no hace nada (no toca `updatedAt`) | `Task::changeStatus()` | — |
+| `dueDate` con formato `YYYY-MM-DD` y fecha real; puede estar en el pasado | `TaskDueDate` | `InvalidTaskDueDate` |
 
-```csharp
-public class TodoItem
-{
-    public int Id { get; set; }
-    public string Title { get; set; } = string.Empty;
-    public bool IsCompleted { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public bool EsRepetitiva { get; set; }
-    public TipoRecurrencia? Recurrencia { get; set; }
-    public DateTime? ProximaFecha { get; set; }
-    public int? PlantillaId { get; set; }
-    public PlantillaTarea? Plantilla { get; set; }
-}
-```
+Transiciones de estado:
+
+| Desde \ Hacia | `pending` | `in_progress` | `done` |
+|---|---|---|---|
+| `pending` | — | ✅ | ✅ |
+| `in_progress` | ✅ | — | ✅ |
+| `done` | ❌ | ✅ | — |
 
 ---
 
-### `PlantillaTarea`
+## 5. API REST
 
-Plantilla reutilizable desde la que se pueden generar nuevas tareas con valores predefinidos.
+Prefijo `/api`, JSON en peticiones y respuestas. Fechas en ISO 8601 (`dueDate` como `YYYY-MM-DD`).
 
-| Campo | Tipo | Descripción |
+| Método | Ruta | Descripción | Respuesta OK | Errores |
+|---|---|---|---|---|
+| GET | `/api/tasks` | Listar con filtros `status`, `priority` y paginación `page` (por defecto 1), `limit` (por defecto 20, máximo 100). Orden: `createdAt` descendente | `200` + página de tareas | `422` filtros inválidos |
+| GET | `/api/tasks/{id}` | Detalle | `200` + tarea | `404` |
+| POST | `/api/tasks` | Crear (`title`, `description`, `priority` (por defecto `medium`), `dueDate`) | `201` + tarea | `400` / `422` |
+| PUT | `/api/tasks/{id}` | Actualizar `title`, `description`, `priority` (obligatoria), `dueDate` (no el estado) | `200` + tarea | `400` / `404` / `422` |
+| PATCH | `/api/tasks/{id}/status` | Cambiar estado (`{ "status": "in_progress" }`) | `200` + tarea | `400` / `404` / `422` |
+| DELETE | `/api/tasks/{id}` | Eliminar | `204` | `404` |
+
+### Representación de una tarea
+
+```json
+{
+  "id": "0193a1b2-7c3d-7e4f-8a9b-0c1d2e3f4a5b",
+  "title": "Preparar la demo",
+  "description": null,
+  "status": "pending",
+  "priority": "medium",
+  "dueDate": "2026-12-01",
+  "createdAt": "2026-11-24T12:00:00+01:00",
+  "updatedAt": "2026-11-24T12:00:00+01:00"
+}
+```
+
+### Listado paginado
+
+```json
+{
+  "items": [ /* tareas */ ],
+  "page": 1,
+  "limit": 20,
+  "total": 42
+}
+```
+
+### Errores
+
+Un único `ExceptionListener` traduce las excepciones a este formato:
+
+```json
+{ "error": { "code": "task_not_found", "message": "La tarea no existe", "details": [] } }
+```
+
+| Caso | Código HTTP | `code` |
 |---|---|---|
-| `Id` | `int` | Clave primaria, autogenerada |
-| `Titulo` | `string` | Título por defecto de la tarea generada. Requerido |
-| `EsRepetitiva` | `bool` | Si las tareas generadas desde esta plantilla serán repetitivas |
-| `Recurrencia` | `TipoRecurrencia?` | Periodicidad por defecto para las tareas generadas |
-
-```csharp
-public class PlantillaTarea
-{
-    public int Id { get; set; }
-    public string Titulo { get; set; } = string.Empty;
-    public bool EsRepetitiva { get; set; }
-    public TipoRecurrencia? Recurrencia { get; set; }
-}
-```
+| JSON mal formado | 400 | `invalid_json` |
+| Tarea inexistente | 404 | `task_not_found` |
+| Ruta inexistente o `{id}` que no es un UUID | 404 | `not_found` |
+| Método no permitido | 405 | `method_not_allowed` |
+| Validación de entrada (`details` con `field` y `message`) | 422 | `validation_failed` |
+| Título inválido | 422 | `invalid_task_title` |
+| Fecha límite inválida | 422 | `invalid_task_due_date` |
+| Transición de estado no permitida | 422 | `invalid_task_transition` |
+| Error no previsto (el mensaje solo se muestra en `debug`) | 500 | `internal_error` |
 
 ---
 
-### `TipoRecurrencia` (enum)
+## 6. Estrategia de tests
 
-```csharp
-public enum TipoRecurrencia
-{
-    Diaria,
-    Semanal,
-    Mensual
-}
-```
+| Suite | Qué prueba | Ejemplos |
+|---|---|---|
+| `Unit` | Entidad, value objects y handlers con dobles del repositorio | `test_new_task_is_pending`, `test_done_task_cannot_go_back_to_pending`, `test_it_does_not_allow_empty_title` |
+| `Integration` | `DoctrineTaskRepository` contra SQLite | Guardar, buscar, filtrar y paginar |
+| `Functional` | Cada endpoint con caso feliz y errores 400/404/422 | `POST /api/tasks` sin título → 422 |
 
----
-
-## 5. Endpoints API REST
-
-### Tareas — `/api/tareas`
-
-| Verbo | Ruta | Descripción | Respuesta OK | Error |
-|---|---|---|---|---|
-| GET | `/api/tareas` | Listar todas las tareas | `200` + array de `TodoItem` | — |
-| GET | `/api/tareas/{id}` | Obtener una tarea por ID | `200` + `TodoItem` | `404` si no existe |
-| POST | `/api/tareas` | Crear una nueva tarea | `201` + `TodoItem` creado | `400` si datos inválidos |
-| PUT | `/api/tareas/{id}` | Actualizar título o estado | `200` + `TodoItem` actualizado | `404` / `400` |
-| DELETE | `/api/tareas/{id}` | Eliminar una tarea | `204 No Content` | `404` si no existe |
-| POST | `/api/tareas/{id}/completar` | Marcar como completada; si es repetitiva, genera la siguiente ocurrencia automáticamente | `200` + `TodoItem` (o nueva ocurrencia) | `404` si no existe |
-
-### Plantillas — `/api/plantillas`
-
-| Verbo | Ruta | Descripción | Respuesta OK | Error |
-|---|---|---|---|---|
-| GET | `/api/plantillas` | Listar todas las plantillas | `200` + array de `PlantillaTarea` | — |
-| GET | `/api/plantillas/{id}` | Obtener una plantilla por ID | `200` + `PlantillaTarea` | `404` si no existe |
-| POST | `/api/plantillas` | Crear una nueva plantilla | `201` + `PlantillaTarea` creada | `400` si datos inválidos |
-| PUT | `/api/plantillas/{id}` | Actualizar una plantilla | `200` + `PlantillaTarea` actualizada | `404` / `400` |
-| DELETE | `/api/plantillas/{id}` | Eliminar una plantilla | `204 No Content` | `404` si no existe |
-| POST | `/api/plantillas/{id}/instanciar` | Crear una tarea nueva a partir de la plantilla | `201` + `TodoItem` creado | `404` si plantilla no existe |
+Las entidades de los tests se construyen con `TaskMother` (`pending()`, `inProgress()`, `done()`).
 
 ---
 
-## 6. Decisiones de diseño
+## 7. Decisiones de diseño
 
-- **SQLite sobre SQL Server**: base de datos embebida, sin instalación ni configuración de servidor. Ideal para una demo local y didáctica.
-- **Controllers sobre Minimal API**: los controladores con atributos son más explícitos y fáciles de leer en pantalla durante una presentación.
-- **Inyección de dependencias por constructor**: patrón estándar de .NET; desacopla la lógica de negocio y facilita los tests con mocks.
-- **Interfaz `ITodoService`**: permite sustituir la implementación por un mock en los tests sin tocar el controlador.
-- **Recurrencia calculada en el servicio**: la lógica de generar la siguiente ocurrencia está en `TodoService.Completar()`, no en el controlador ni en el modelo.
-- **`POST /completar` en lugar de `PUT` para completar**: la acción de completar una tarea repetitiva tiene un efecto secundario (crear nueva ocurrencia), por lo que merece su propio endpoint de acción en lugar de un `PUT` genérico.
-- **Plantilla como entidad independiente**: `PlantillaTarea` es una entidad propia, no un campo de `TodoItem`, para permitir gestionar y reutilizar plantillas sin acoplarlas al ciclo de vida de las tareas.
-- **Relación opcional `TodoItem → PlantillaTarea`**: la FK `PlantillaId` es nullable; las tareas creadas manualmente no necesitan plantilla.
-- **Sin paginación ni autenticación**: fuera del alcance de la demo; añadir solo si se solicita explícitamente.
-- **Código en castellano**: nombres de clases, métodos y variables en español para coherencia con el público hispanohablante del curso.
+- **Dominio sin framework**: `Task` no conoce Doctrine; el mapeo va en XML en Infraestructura. Permite testear las reglas de negocio sin base de datos.
+- **UUID generado antes de persistir**: el handler pide el `id` a `TaskRepository::nextIdentity()` (UUID v7 de `symfony/uid` en la implementación Doctrine), así el dominio no depende de Symfony y el `id` existe sin esperar a la BD.
+- **Un controlador por endpoint**: controladores pequeños y fáciles de leer en pantalla durante el curso.
+- **`PUT` no cambia el estado; `PATCH /status` sí**: el cambio de estado tiene reglas propias (transiciones), así que tiene su propio caso de uso y endpoint.
+- **422 para reglas de negocio**: distingue "petición mal formada" (400) de "petición bien formada pero no válida" (422).
+- **SQLite en desarrollo y en tests**: se arranca sin Docker ni servidor de base de datos. Cada entorno usa su propio fichero en `var/` y los tests recrean el esquema antes de cada caso. Pasar a PostgreSQL solo exige cambiar `DATABASE_URL` y generar una migración nueva.
+- **Borrado físico**: sin historial ni papelera en esta versión.
+- **Código en inglés, documentación en español**: nombres de clases y métodos en inglés (`Task`, `changeStatus`) como en `AGENTS.md`; textos de la interfaz y la documentación en español.
 
 ---
 
-## 7. Pendientes / Preguntas abiertas
+## 8. Fuera de alcance
 
-- **Frontend**: ¿Razor Pages o React + Vite? Pendiente de decisión en el curso.
-- **Paginación**: no incluida. Si el volumen de tareas crece, se añadiría `skip/take` al endpoint GET.
-- **Autenticación**: no incluida. Posible extensión futura con JWT o cookies.
-- **Filtros y búsqueda**: no incluidos. Posible extensión: `GET /api/tareas?completada=true`.
-- **Soft delete vs hard delete**: actualmente se borra físicamente. Podría añadirse campo `DeletedAt` si se requiere historial.
-- **Job de recurrencia automática**: actualmente la siguiente ocurrencia se genera solo al llamar a `POST /completar`. Si se requiere generación automática sin intervención del usuario (p. ej. a medianoche), habría que añadir un `BackgroundService` o un job programado.
-- **Recurrencia personalizada**: el enum `TipoRecurrencia` cubre los casos más comunes (Diaria/Semanal/Mensual). Si se necesitan patrones más complejos (cada N días, ciertos días de la semana), habría que extender el modelo.
-- **Herencia de cambios plantilla → tareas**: si se modifica una plantilla, las tareas ya creadas no se actualizan automáticamente. Comportamiento a definir si se requiere propagación.
+- Autenticación y tareas por usuario.
+- Plantillas de tareas y tareas repetitivas (presentes en el análisis original de otro curso; posibles extensiones futuras).
+- Búsqueda por texto, etiquetas o categorías.
+- Borrado lógico (`deletedAt`).
+
+---
+
+## 9. Preguntas resueltas en la versión 0.1
+
+| Pregunta | Decisión |
+|---|---|
+| Paginación | `page=1` y `limit=20` por defecto, `limit` máximo `100` (más da `422`) |
+| Orden del listado | `createdAt` descendente y, a igualdad, `id` descendente |
+| Transición `pending → done` directa | Se permite; solo se prohíbe `done → pending` |
+| Cambiar al mismo estado | Se ignora: `200` con la tarea sin cambios y sin tocar `updatedAt` |
+| `dueDate` en el pasado | Se permite; el frontend marca la tarea como vencida si no está `done` |

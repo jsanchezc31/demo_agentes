@@ -17,10 +17,10 @@ Aplicación de **lista de tareas** (to-do list):
 | Capa | Tecnología |
 |------|------------|
 | Lenguaje backend | PHP 8.3 |
-| Framework backend | Symfony 7.x |
+| Framework backend | Symfony 7.4 |
 | Persistencia | Doctrine ORM + Doctrine Migrations |
-| Base de datos | PostgreSQL (SQLite en tests) |
-| Frontend | Angular 18+ (standalone components, signals) |
+| Base de datos | SQLite en desarrollo y en tests (un fichero por entorno en `backend/var/`) |
+| Frontend | Angular 22 (standalone components, signals, zoneless) |
 | Tests backend | PHPUnit, Symfony WebTestCase |
 | Calidad | PHP-CS-Fixer, PHPStan (nivel 8), ESLint, Prettier |
 
@@ -106,7 +106,7 @@ Prefijo `/api`, JSON en peticiones y respuestas.
 
 ```bash
 composer install
-symfony server:start                         # o: php -S localhost:8000 -t public
+php -S 127.0.0.1:8000 -t public              # o: symfony server:start
 php bin/console doctrine:migrations:diff
 php bin/console doctrine:migrations:migrate
 php bin/phpunit
@@ -119,9 +119,10 @@ vendor/bin/php-cs-fixer fix
 
 ```bash
 npm install
-npm start          # ng serve con proxy a http://localhost:8000/api
+npm start          # ng serve con proxy de /api a http://127.0.0.1:8000
 npm run build
 npm run lint
+npm run format     # Prettier
 ```
 
 ## Reglas de Cursor
@@ -141,6 +142,7 @@ npm run lint
 |-------|-----|
 | `commit-message` | Redactar el mensaje de cada commit (`tipo: descripción`) |
 | `bitacora` | Documentar cada paso en `docs/` y retomar el trabajo en un chat nuevo |
+| `dto` | Generar los DTOs de la API y los modelos TypeScript a partir de `docs/analisis-diseño.md` |
 
 ## Bitácora en `docs/`
 
@@ -148,20 +150,20 @@ Cada paso se documenta en `docs/` con la skill `bitacora`. Para retomar el traba
 
 ## Lista de tareas inicial
 
-- [ ] Crear estructura `backend/` con Symfony 7 (skeleton + ORM pack + validator + serializer).
-- [ ] Configurar Doctrine con PostgreSQL y SQLite para tests.
-- [ ] Configurar PHPUnit, PHPStan y PHP-CS-Fixer.
-- [ ] Modelar entidad `Task` en dominio y su mapeo Doctrine.
-- [ ] Crear migración inicial.
-- [ ] Implementar casos de uso: crear, listar, obtener, actualizar, cambiar estado, eliminar.
-- [ ] Exponer endpoints REST y manejo uniforme de errores.
-- [ ] Tests unitarios, de integración y funcionales del backend.
-- [ ] Configurar CORS para el frontend.
-- [ ] Crear estructura `frontend/` con Angular (standalone, routing, ESLint, Prettier).
-- [ ] Servicio HTTP de tareas y modelos tipados.
-- [ ] Pantallas: listado con filtros, alta, edición y cambio de estado.
-- [ ] Proxy de desarrollo hacia la API.
-- [ ] Documentar arranque del proyecto en `README.md`.
+- [x] Crear estructura `backend/` con Symfony 7 (skeleton + ORM pack + validator + serializer).
+- [x] Configurar Doctrine con SQLite (desarrollo y tests).
+- [x] Configurar PHPUnit, PHPStan y PHP-CS-Fixer.
+- [x] Modelar entidad `Task` en dominio y su mapeo Doctrine.
+- [x] Crear migración inicial.
+- [x] Implementar casos de uso: crear, listar, obtener, actualizar, cambiar estado, eliminar.
+- [x] Exponer endpoints REST y manejo uniforme de errores.
+- [x] Tests unitarios, de integración y funcionales del backend.
+- [x] Configurar CORS para el frontend.
+- [x] Crear estructura `frontend/` con Angular (standalone, routing, ESLint, Prettier).
+- [x] Servicio HTTP de tareas y modelos tipados.
+- [x] Pantallas: listado con filtros, alta, edición y cambio de estado.
+- [x] Proxy de desarrollo hacia la API.
+- [x] Documentar arranque del proyecto en `README.md`.
 
 ## Qué no hacer
 
