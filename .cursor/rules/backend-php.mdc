@@ -1,0 +1,48 @@
+---
+description: Convenciones de PHP y arquitectura por capas del backend Symfony
+globs: backend/**/*.php
+alwaysApply: false
+---
+
+# Backend PHP
+
+- `declare(strict_types=1);` en todos los ficheros.
+- PSR-12. Clases `final` por defecto; propiedades `readonly` cuando sea posible.
+- Tipado completo en parámetros, retornos y propiedades. PHPStan nivel 8 debe pasar.
+
+## Dependencias entre capas
+
+- `Domain` no depende de nada: ni Symfony ni Doctrine.
+- `Application` depende solo de `Domain`.
+- `Infrastructure` y `UI` implementan/consumen lo anterior.
+
+```php
+// ❌ MAL: el dominio conoce Doctrine
+namespace App\Domain\Task;
+use Doctrine\ORM\Mapping as ORM;
+#[ORM\Entity]
+final class Task {}
+
+// ✅ BIEN: dominio puro, mapeo en Infrastructure
+namespace App\Domain\Task;
+final class Task
+{
+    private function __construct(
+        private readonly TaskId $id,
+        private string $title,
+        private TaskStatus $status,
+    ) {}
+
+    public static function create(TaskId $id, string $title): self
+    {
+        return new self($id, TaskTitle::assert($title), TaskStatus::Pending);
+    }
+}
+```
+
+## Casos de uso
+
+- Un caso de uso = un handler con un único método público `__invoke`.
+- Reciben un command/query (DTO inmutable) y devuelven un DTO, nunca la entidad.
+- Las reglas de negocio viven en la entidad, no en el handler.
+- Excepciones de dominio específicas (`TaskNotFound`, `InvalidTaskTransition`), nunca `\Exception` genérica.

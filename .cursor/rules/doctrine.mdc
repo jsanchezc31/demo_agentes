@@ -1,0 +1,43 @@
+---
+description: Mapeo Doctrine, repositorios y migraciones
+globs: backend/src/Infrastructure/**,backend/migrations/**,backend/config/packages/doctrine*.yaml
+alwaysApply: false
+---
+
+# Doctrine
+
+## Mapeo
+
+- El mapeo de entidades de dominio va en XML en `backend/src/Infrastructure/Persistence/Doctrine/Mapping/`.
+- Enums de dominio (`TaskStatus`, `TaskPriority`) se mapean como `string` con `enumType`.
+- UUID como clave primaria (`symfony/uid`), generado en dominio, no por la BD.
+
+## Repositorios
+
+- La interfaz vive en `Domain` (`TaskRepository`); la implementación en `Infrastructure` (`DoctrineTaskRepository`).
+- Los repositorios no hacen `flush()` implícito fuera de `save()`/`remove()`.
+
+```php
+// ✅ BIEN
+final class DoctrineTaskRepository implements TaskRepository
+{
+    public function __construct(private readonly EntityManagerInterface $em) {}
+
+    public function save(Task $task): void
+    {
+        $this->em->persist($task);
+        $this->em->flush();
+    }
+
+    public function find(TaskId $id): ?Task
+    {
+        return $this->em->find(Task::class, $id->value());
+    }
+}
+```
+
+## Migraciones
+
+- Generar siempre con `php bin/console doctrine:migrations:diff`; revisar el SQL antes de aplicarla.
+- Nunca editar una migración ya aplicada; crear una nueva.
+- Cada migración con `getDescription()` explicando el cambio.

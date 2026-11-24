@@ -1,0 +1,42 @@
+---
+description: Convenciones de Angular para el frontend de la lista de tareas
+globs: frontend/src/**/*.ts,frontend/src/**/*.html,frontend/src/**/*.scss
+alwaysApply: false
+---
+
+# Frontend Angular
+
+- Componentes standalone con `ChangeDetectionStrategy.OnPush`.
+- Estado local con signals (`signal`, `computed`); evitar `subscribe` manual en componentes.
+- Inyección con `inject()` en lugar de constructor.
+- Control de flujo nativo en plantillas: `@if`, `@for` (con `track`), `@switch`.
+- Modelos tipados en `core/models`; prohibido `any`.
+- Llamadas HTTP solo en servicios de `features/*/services`, nunca en componentes.
+- URL base de la API desde `environment`, no hardcodeada.
+- No generar archivos `*.spec.ts` salvo petición explícita.
+
+```typescript
+// ✅ BIEN
+@Component({
+  selector: 'app-task-list',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    @for (task of tasks(); track task.id) {
+      <app-task-item [task]="task" />
+    } @empty {
+      <p>No hay tareas</p>
+    }
+  `,
+})
+export class TaskListComponent {
+  private readonly taskService = inject(TaskService);
+  readonly tasks = toSignal(this.taskService.list(), { initialValue: [] });
+}
+```
+
+## Organización
+
+- `core/`: servicios singleton, interceptores (errores HTTP), modelos.
+- `features/tasks/`: páginas, componentes y servicio de tareas.
+- `shared/`: componentes y pipes reutilizables sin lógica de negocio.

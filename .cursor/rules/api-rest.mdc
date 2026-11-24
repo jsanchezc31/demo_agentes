@@ -1,0 +1,48 @@
+---
+description: Controladores REST, validación de entrada y formato de errores de la API
+globs: backend/src/UI/Http/**
+alwaysApply: false
+---
+
+# API REST
+
+- Controladores finos: validan la entrada, invocan un caso de uso y serializan la respuesta.
+- Un controlador invocable (`__invoke`) por endpoint.
+- Entrada mapeada a DTO con `#[MapRequestPayload]` / `#[MapQueryString]` y validada con Symfony Validator.
+- Rutas con atributos `#[Route('/api/tasks/{id}', methods: ['GET'])]`.
+
+```php
+// ✅ BIEN
+#[Route('/api/tasks', methods: ['POST'])]
+final class CreateTaskController
+{
+    public function __construct(private readonly CreateTaskHandler $handler) {}
+
+    public function __invoke(#[MapRequestPayload] CreateTaskRequest $request): JsonResponse
+    {
+        $task = ($this->handler)(new CreateTaskCommand($request->title, $request->priority));
+
+        return new JsonResponse($task, Response::HTTP_CREATED);
+    }
+}
+```
+
+## Códigos HTTP
+
+| Caso | Código |
+|------|--------|
+| Creado | 201 |
+| Borrado | 204 |
+| JSON mal formado | 400 |
+| No encontrado | 404 |
+| Validación / regla de negocio | 422 |
+
+## Errores
+
+Un único `ExceptionListener` traduce excepciones de dominio a este formato:
+
+```json
+{ "error": { "code": "task_not_found", "message": "La tarea no existe", "details": [] } }
+```
+
+Nunca devolver trazas ni mensajes internos en producción.

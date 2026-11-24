@@ -1,0 +1,42 @@
+---
+description: Flujo de trabajo documento → GitHub Issues (MCP o gh) → análisis → implementación → PR. Aplicar cuando la tarea parte de un issue de GitHub, se piden criterios de aceptación, o se va a crear rama, commit o Pull Request.
+alwaysApply: false
+---
+
+# Flujo de trabajo
+
+Cada fase tiene su criterio de aceptación; no se avanza sin cumplirlo.
+
+Acceso a GitHub: MCP de GitHub o CLI `gh` (`gh issue create`, `gh issue view <n>`, `gh pr create`).
+
+1. **Documento → GitHub Issues**: a partir de `docs/funcional/` se crean los issues en GitHub.
+   - Criterio: cada issue tiene título, descripción, etiqueta (`feature`, `bug`...) y criterios de aceptación.
+2. **Análisis**: leer el issue (`gh issue view <n>`) y completar criterios verificables (formato Dado / Cuando / Entonces).
+   - Criterio: no hay ambigüedades; si las hay, preguntar antes de implementar.
+3. **Implementación**: seguir `AGENTS.md` y las reglas de cada capa; escribir los tests necesarios.
+   - Criterio: cada criterio de aceptación está cubierto por código y test.
+4. **Validación**: ejecutar `php bin/phpunit`, `vendor/bin/phpstan analyse`, `npm run lint`.
+   - Criterio: todo en verde.
+5. **Git → PR** (solo si se pide):
+   - Rama: `feature/<n-issue>-descripcion-corta` (o `fix/...`)
+   - Commits: según la skill `commit-message` (`tipo: descripción` y pie `Refs #<n-issue>`)
+   - PR con `Closes #<n-issue>` para que GitHub cierre el issue al fusionar.
+
+## Plantilla de PR
+
+```markdown
+## título del cambio
+
+Closes #<n-issue>
+
+### Cambios
+- ...
+
+### Criterios de aceptación
+- [x] Dado ... cuando ... entonces ...
+
+### Validación
+- [x] PHPUnit
+- [x] PHPStan
+- [x] Lint frontend
+```

@@ -1,0 +1,40 @@
+---
+description: Estrategia y convenciones de tests PHPUnit del backend
+globs: backend/tests/**
+alwaysApply: false
+---
+
+# Tests backend (PHPUnit)
+
+| Suite | Qué prueba | Base |
+|-------|-----------|------|
+| `Unit` | Entidades, value objects y handlers con dobles de repositorio | `TestCase` |
+| `Integration` | Repositorios Doctrine contra SQLite | `KernelTestCase` |
+| `Functional` | Endpoints HTTP completos | `WebTestCase` |
+
+## Obligatorio
+
+- Todo caso de uso nuevo lleva test unitario.
+- Todo endpoint nuevo lleva test funcional con caso feliz y errores (400/404/422).
+- Cada regla de negocio del dominio tiene al menos un test que la rompa.
+
+## Convenciones
+
+- Nombres descriptivos en snake_case: `test_it_does_not_allow_empty_title()`.
+- Estructura Arrange / Act / Assert separada por líneas en blanco.
+- Un comportamiento por test.
+- BD limpia entre tests (transacción o recreación del esquema).
+
+```php
+// ✅ BIEN
+public function test_done_task_cannot_go_back_to_pending(): void
+{
+    $task = TaskMother::done();
+
+    $this->expectException(InvalidTaskTransition::class);
+
+    $task->changeStatus(TaskStatus::Pending);
+}
+```
+
+- Usar Object Mothers (`tests/Mother/TaskMother.php`) para construir entidades.
